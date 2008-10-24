@@ -1,0 +1,50 @@
+" lookupfile-grep.vim: Lookup files that contain text matches in them.
+" Author: Dane Summers (dsummersLa ata yahooa dotta comma (take an 'a' of the
+" end of everything))
+" Last Change: Oct 23, 2008
+" Revision: 15
+" Requires:
+" Vim-7.0
+" lookupfile plugin (v 1.4+)
+" findutils (find command requires -wholename for 'folder/*/subfolder' type patterns in find command)
+" textutils (sed, xargs, etc)
+"
+" Documentation:
+"
+" This is a plugin for the lookupfile plugin. It has two usable functions that
+" integrate into the lookupfile plugin. Both functions have these basic
+" features:
+"
+"   - The &path and the &suffixesadd are taken into account to determine
+"     whether a file should be visible in the drop down list.
+"   - To make for quicker file lookups when '*' is part of the search pattern
+"     it is treated as if it were '.*' (the probably intent of * by the user).
+"   - You can setup whether searches are case sensitive through the
+"     g:LookupFileGrep_IgnoreCase setting.
+"   - To support changing the path/suffixesadd values on the fly you can use
+"     the GrepLookup/CaseLookupFile functions directly (b/c &path and
+"     &suffixesadd are settings local to the buffer they are not garaunteed to
+"     work with any lookupfile functions if you set &path/&suffixesadd directly.
+"
+" GrepLookup:
+"   The GrepLookup provides a similar feature set to the builtin :grep and
+"   :vimgrep provided in Vim, except that it is integrated into the lookupfile
+"   plugin. In short: type in a pattern, and any file that contains the
+"   pattern is displayed in a drop down.
+"
+" CaseLookupFile:
+"   This function is similar to the default LUPath function provided by the
+"   lookupfile plugin, except that it has the standard behavior listed
+"   previously (takes &path & &suffixesadd plus '*' converted to '.*', etc).
+"
+" BunnyCaseLookupFile:
+"   Matches files as above, but in addition automatically turns a capital
+"   letter search into '\u*' so that you can quickly match agains the capital
+"   letters (handy for long java file names).
+"
+" TODO add the ability to specify whether cache files are temporary or permanent (and if they are
+" permanent, then add a function to flush them out.
+"
+" Thanks:
+" Hari Krishna Dara, the lookupfile plugin author
+" Adam Thorsen, suffering beta tester
