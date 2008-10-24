@@ -1,14 +1,3 @@
-" lookupfile-grep.vim: Lookup files that contain text matches in them.
-" Author: Dane Summers (dsummersLa ata yahooa dotta comma (take an 'a' of the
-" end of everything))
-" Last Change: Oct 23, 2008
-" Revision: 15
-" Requires:
-" Vim-7.0
-" lookupfile plugin (v 1.4+)
-" findutils (find command requires -wholename for 'folder/*/subfolder' type patterns in find command)
-" textutils (sed, xargs, etc)
-"
 " Documentation:
 "
 " This is a plugin for the lookupfile plugin. It has two usable functions that
@@ -25,6 +14,37 @@
 "     the GrepLookup/CaseLookupFile functions directly (b/c &path and
 "     &suffixesadd are settings local to the buffer they are not garaunteed to
 "     work with any lookupfile functions if you set &path/&suffixesadd directly.
+"
+" Requirements:
+"
+" Vim-7.0
+"
+" lookupfile plugin (v 1.4+) -- TODO please use the one in this repo for now.
+" the one on the vim website is significantly newer and may not work.
+"
+" findutils (find command requires -wholename for 'folder/*/subfolder' type patterns in find command)
+" textutils (sed, xargs, etc)
+"
+" Installation:
+"
+" Copy the vim files in the plugin file to your ~/.vim/plugin folder.
+"
+" To see examples of how you can use/setup these commands for your own
+" projects I have included example source scripts that I use to setup my own
+" projects in the 'project' folder. I put this folder in ~/.vim/.
+"
+" I put these in my .vimrc:
+"
+" command! -nargs=? -bang -complete=dir MR :call LoadProject("maven",<q-args>)
+" command! -nargs=? -bang -complete=dir RR :call LoadProject("rails",<q-args>)
+" command! -nargs=? -bang -complete=dir JR :call LoadProject("java",<q-args>)
+" command! -nargs=? -bang -complete=dir SR :call LoadProject("script",<q-args>)
+"
+" Then I use these mappings to quickly setup my current directly (ie, use the
+" :cd <directory of project>) as a specific type of project...java,rails,etc:
+" by typing say, :JR -- which would setup my <localleader>t to look for java
+" class files, <localleader>r to look for java type files (resources, xml,
+" java), and <localleader>g to grep java type files for some pattern.
 "
 " GrepLookup:
 "   The GrepLookup provides a similar feature set to the builtin :grep and

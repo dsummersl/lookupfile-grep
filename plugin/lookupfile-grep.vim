@@ -66,7 +66,8 @@ endif
 if !exists('g:LookupFileGrep_UtilsBase')
 	" textutils and findutils commands base directory where they are installed.
 	" The default ones on OSX are not good (I used fink).
-	let g:LookupFileGrep_UtilsBase = '/sw/bin/'
+	" let g:LookupFileGrep_UtilsBase = '/sw/bin/'
+	let g:LookupFileGrep_UtilsBase = '/usr/bin/'
 endif
 
 if !exists('g:LookupFileGrep_Ctags')
