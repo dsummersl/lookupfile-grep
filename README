@@ -27,7 +27,8 @@
 "
 " Installation:
 "
-" Copy the vim files in the plugin file to your ~/.vim/plugin folder.
+" Copy the vim files in the plugin folder to your ~/.vim/plugin folder.
+" Copy the vim files in the autoload folder to your ~/.vim/autoload folder.
 "
 " To see examples of how you can use/setup these commands for your own
 " projects I have included example source scripts that I use to setup my own
