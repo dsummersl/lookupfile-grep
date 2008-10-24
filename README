@@ -35,6 +35,24 @@
 "
 " I put these in my .vimrc:
 "
+" function! LoadProject(type,directory)
+" 	" type      = the type of project.
+" 	" directory = Directory of the project to set up for.
+" 	"
+" 	" Load a project. This is a generic function that loads a script for a type
+" 	" of project. Each type of project keeps its functions in a directory
+" 	" named after the project (~/.vim/Project/{type}). When this function is
+" 	" called, the script ~/.vim/Project/{type}/in.vim is executed, with
+" 	" b:proj_cd set to the directory of the project that in.vim should setup
+" 	" for.
+" 	"
+" 	let b:proj_cd=getcwd()
+" 	if (a:directory != '')
+" 		let b:proj_cd=a:directory
+" 	endif
+" 	exec "source ~/.vim/project/". a:type .".vim"
+" endfunction
+"
 " command! -nargs=? -bang -complete=dir MR :call LoadProject("maven",<q-args>)
 " command! -nargs=? -bang -complete=dir RR :call LoadProject("rails",<q-args>)
 " command! -nargs=? -bang -complete=dir JR :call LoadProject("java",<q-args>)
