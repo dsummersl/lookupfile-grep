@@ -2,12 +2,7 @@
 " Author: Dane Summers (dsummersLa ata yahooa dotta comma (take an 'a' of the
 " end of everything))
 " Last Change: Oct 23, 2008
-" Revision: 15
-" Requires:
-" Vim-7.0
-" lookupfile plugin (v 1.4+)
-" findutils (find command requires -wholename for 'folder/*/subfolder' type patterns in find command)
-" textutils (sed, xargs, etc)
+" Revision: 16
 "
 " Documentation:
 "
@@ -26,6 +21,53 @@
 "     &suffixesadd are settings local to the buffer they are not garaunteed to
 "     work with any lookupfile functions if you set &path/&suffixesadd directly.
 "
+" Requirements:
+"
+" Vim 7.1
+" lookupfile plugin (v1.8) -- included
+" findutils (find command requires -wholename for 'folder/*/subfolder' type patterns in find command)
+" textutils (sed, xargs, etc)
+"
+" Installation:
+"
+" Copy the vim files in the plugin folder to your ~/.vim/plugin folder.
+" Copy the vim files in the autoload folder to your ~/.vim/autoload folder.
+"
+" To see examples of how you can use/setup these commands for your own
+" projects I have included example source scripts that I use to setup my own
+" projects in the 'project' folder. I put this folder in ~/.vim/.
+"
+" I put these in my .vimrc:
+"
+" function! LoadProject(type,directory)
+" 	" type      = the type of project.
+" 	" directory = Directory of the project to set up for.
+" 	"
+" 	" Load a project. This is a generic function that loads a script for a type
+" 	" of project. Each type of project keeps its functions in a directory
+" 	" named after the project (~/.vim/Project/{type}). When this function is
+" 	" called, the script ~/.vim/Project/{type}/in.vim is executed, with
+" 	" b:proj_cd set to the directory of the project that in.vim should setup
+" 	" for.
+" 	"
+" 	let b:proj_cd=getcwd()
+" 	if (a:directory != '')
+" 		let b:proj_cd=a:directory
+" 	endif
+" 	exec "source ~/.vim/project/". a:type .".vim"
+" endfunction
+"
+" command! -nargs=? -bang -complete=dir MR :call LoadProject("maven",<q-args>)
+" command! -nargs=? -bang -complete=dir RR :call LoadProject("rails",<q-args>)
+" command! -nargs=? -bang -complete=dir JR :call LoadProject("java",<q-args>)
+" command! -nargs=? -bang -complete=dir SR :call LoadProject("script",<q-args>)
+"
+" Then I use these mappings to quickly setup my current directly (ie, use the
+" :cd <directory of project>) as a specific type of project...java,rails,etc:
+" by typing say, :JR -- which would setup my <localleader>t to look for java
+" class files, <localleader>r to look for java type files (resources, xml,
+" java), and <localleader>g to grep java type files for some pattern.
+"
 " GrepLookup:
 "   The GrepLookup provides a similar feature set to the builtin :grep and
 "   :vimgrep provided in Vim, except that it is integrated into the lookupfile
@@ -41,6 +83,16 @@
 "   Matches files as above, but in addition automatically turns a capital
 "   letter search into '\u*' so that you can quickly match agains the capital
 "   letters (handy for long java file names).
+"
+"
+" Notes: (wrt lookupfile.vim)
+"
+" I think both of these must be turned off in lookupfile.vim:
+" g:LookupFile_PreservePatternHistory = 0
+" g:LookupFile_PreserveLastPattern = 0
+"
+"	I recommend that you turn this on:
+" g:LookupFile_AlwaysAcceptFirst = 1
 "
 " TODO add the ability to specify whether cache files are temporary or permanent (and if they are
 " permanent, then add a function to flush them out.
@@ -268,6 +320,17 @@ endfunction
 " !!!Also check the PathExists so it returns true by default!!!
 " Requires vimunit
 
+function! TestBunnyCaseFunction()
+	" don't have to worry abou the stars - the normal function stuff will match
+	" it to oblivion.
+	call VUAssertEquals(s:ToBunny('hello'),'[hH][eE][lL][lL][oO].*')
+	call VUAssertEquals(s:ToBunny('hC'),'[hH][^A-Z]*C.*')
+	call VUAssertEquals(s:ToBunny('C'),'C.*')
+	call VUAssertEquals(s:ToBunny('Cre'),'C[rR][eE].*')
+	call VUAssertEquals(s:ToBunny('CreC'),'C[rR][eE][^A-Z]*C.*')
+	call VUAssertEquals(s:ToBunny('CreCD'),'C[rR][eE][^A-Z]*C[^A-Z]*D.*')
+endfunction
+
 function! TestPathFunctions()
 	call VUAssertEquals(s:CommandsForFind('','','find'),'echo hi')
 
@@ -406,12 +469,39 @@ function! GrepLookup(somepath,somesuffixes,minPatLen)
 endfunction
 " "}}}
 " Case LookupFile functions"{{{
+function! <SID>ToBunny(pattern)
+	"let cleanedPattern = substitute(a:pattern,"\\(\\u\\)","\\1*","g")
+	let cleanedPattern = ""
+	let isfirst = 1
+	for c in split(a:pattern,'\zs')
+		if c == toupper(c)
+			if isfirst == 1
+				let cleanedPattern = cleanedPattern . c
+			else
+				let cleanedPattern = cleanedPattern .'[^A-Z]*'. c
+			endif
+		elseif c == substitute(c,"[a-z]",c,"")
+			let cleanedPattern = cleanedPattern .'['. c . toupper(c) .']'
+		endif
+		let isfirst = 0
+	endfor
+	echom "cleaned pattern = ". cleanedPattern
+	return cleanedPattern .".*"
+endfunction
+
 function! BunnyCaseLookupMatch(pattern)
-	let cleanedPattern = substitute(a:pattern,"\\(\\u\\)","\\1*","g")
-	return CaseLookupMatch(cleanedPattern)
+	let s:oldCase = g:LookupFileGrep_IgnoreCase
+	let g:LookupFileGrep_IgnoreCase = 0
+	let result = CaseLookupMatch(s:ToBunny(a:pattern),0)
+	let g:LookupFileGrep_IgnoreCase = s:oldCase
+	return result
 endfunction
 
 function! CaseLookupMatch(pattern)
+	return CaseLookupMatch(a:pattern,1)
+endfunction
+
+function! CaseLookupMatch(pattern,doCleanup)
 	if !exists('s:CaseLookupCaches')
 		let s:CaseLookupCaches = {}
 	endif
@@ -424,7 +514,11 @@ function! CaseLookupMatch(pattern)
 	let file = tempname()
 	let s:PathCaches[currentPathCache] = file
 
+	if a:doCleanup == 1
 	let cleanedPattern = substitute(a:pattern,'*','.*','g')
+	else
+		let cleanedPattern = a:pattern
+	endif
 	let file = tempname()
 	let s:PathCaches[currentPathCache] = file
 	if (g:LookupFileGrep_IgnoreCase == 1)
