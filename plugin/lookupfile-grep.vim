@@ -1,8 +1,8 @@
 " lookupfile-grep.vim: Lookup files that contain text matches in them.
 " Author: Dane Summers (dsummersLa ata yahooa dotta comma (take an 'a' of the
 " end of everything))
-" Last Change: Oct 23, 2008
-" Revision: 16
+" Last Change: Dec 10, 2008
+" Revision: 17
 "
 " Documentation:
 "
@@ -23,7 +23,7 @@
 "
 " Requirements:
 "
-" Vim 7.1
+" Vim 7.0+
 " lookupfile plugin (v1.8) -- included
 " findutils (find command requires -wholename for 'folder/*/subfolder' type patterns in find command)
 " textutils (sed, xargs, etc)
@@ -84,7 +84,6 @@
 "   letter search into '\u*' so that you can quickly match agains the capital
 "   letters (handy for long java file names).
 "
-"
 " Notes: (wrt lookupfile.vim)
 "
 " I think both of these must be turned off in lookupfile.vim:
@@ -94,46 +93,59 @@
 "	I recommend that you turn this on:
 " g:LookupFile_AlwaysAcceptFirst = 1
 "
-" TODO add the ability to specify whether cache files are temporary or permanent (and if they are
-" permanent, then add a function to flush them out.
-"
 " Thanks:
 " Hari Krishna Dara, the lookupfile plugin author
 " Adam Thorsen, suffering beta tester
 
 " Settings:{{{
-if !exists('g:LookupFileGrep_IgnoreCase')
-	" If set to true, then all searches will ignore case during the search
-	" process without disturbing the user's 'ignorecase' setting.
-	let g:LookupFileGrep_IgnoreCase = 0
-endif
 
-if !exists('g:LookupFileGrep_TempCaches')
-	" If set, then all lookup functions use a temporary
-	" filename for cacheing. Otherwise, a permanent file
-	" in the project directory is created.
-	let g:LookupFileGrep_TempCaches = 0
-endif
+" IgnoreCase: If set to true, then all searches will ignore case during the search
+" process without disturbing the user's 'ignorecase' setting.
+call s:SetProperty('g:LookupFileGrep_IgnoreCase','0')
 
-if !exists('g:LookupFileGrep_UtilsBase')
-	" textutils and findutils commands base directory where they are installed.
-	" The default ones on OSX are not good (I used fink).
-	" let g:LookupFileGrep_UtilsBase = '/sw/bin/'
-	let g:LookupFileGrep_UtilsBase = '/usr/bin/'
-endif
+" CacheSearchResults: If set to true, then all find searches (files) will be
+" stored for future use between VIM sessions. You can use the
+" LookupFileEraseCache() method to delete these. If not set, then caches are
+" not saved between uses (temp files are used instead) and initial searches
+" will take a little longer...
+call s:SetProperty('g:LookupFileGrep_CacheSearchResults','1')
 
-if !exists('g:LookupFileGrep_Ctags')
-	" find command
-	let g:LookupFileGrep_Ctags = 'ctags'
-endif
+" TempCaches: If set, then all lookup functions use a temporary
+" filename for cacheing. Otherwise, a permanent file
+" in the project directory is created.
+call s:SetProperty('g:LookupFileGrep_TempCaches','0')
+
+" TempCaches: If set, then all lookup functions use a temporary
+" filename for cacheing. Otherwise, a permanent file
+" in the project directory is created.
+call s:SetProperty('g:LookupFileGrep_TempCaches',"0")
+
+" UtilsBase: textutils and findutils commands base directory where they are installed.
+" The default ones on OSX are not standard (I used fink).
+" let g:LookupFileGrep_UtilsBase = '/sw/bin/'
+call s:SetProperty('g:LookupFileGrep_UtilsBase',"'/usr/bin'")
+
+" Ctags: Location of exuberant ctags program.
+call s:SetProperty('g:LookupFileGrep_Ctags','ctags')
+
+function! <SID>SetProperty(property,value)
+	if !exists(a:property)
+		exec "let ". a:property ."=". a:value .""
+	endif
+endfunction
+
 " }}}
 
+command! LookupFileEraseCache call LookupFileEraseCache()
 command! GrepLookup call GrepLookupDefault()
 command! CaseLookupFile call CaseLookupFileDefault()
 command! BunnyCaseLookupFile call BunnyCaseLookupFileDefault()
 command! FunctionLookupFile call FunctionLookupFileDefault()
 
 " Support functions{{{
+
+function! LookupFileEraseCache()
+endfunction
 
 function! TagFileMatch(tagfile,pattern)
 	" GIVEN:
@@ -166,6 +178,12 @@ function! <SID>NewFile()
 	" Return a new file name that can be used. This is a wrapper function that
 	" acts very much like tempname(), but allows the ability to return non
 	" temp file names.
+	return tempname()
+	" TODO whenever a new search/cache file is generated...we want to save the
+	" search term and the file name for the results in a map...and then write
+	" the map into a cache file that can be loaded up on startup.
+	" the cache file would note...the PWD and other settings? err. thats
+	" confusing. b/c thats oustide the scope of the plugin.
 endfunction
 
 function! <SID>PathExists(somepath)
@@ -297,7 +315,7 @@ function! <SID>CompileMatchesFile()
 	endif
 	let key = s:PathKey(s:SavedLookupPath,s:SavedLookupSuffixes)
 	if !has_key(s:PathCaches,key)
-		let newfile = tempname()
+		let newfile = s:NewFile()
 		let s:PathCaches[key] = newfile
 		let command = s:CommandsForFind(s:SavedLookupPath,s:SavedLookupSuffixes,g:LookupFileGrep_UtilsBase ."find")
 		echom "silent !(". command .') | uniq > '. newfile
@@ -368,7 +386,7 @@ function! <SID>CompileFilesAndSearch(pattern)
 	if has_key(s:GrepCaches,grepKey)
 		return s:GrepCaches[grepKey]
 	endif
-	let file = tempname()
+	let file = s:NewFile()
 	let s:GrepCaches[grepKey] = file
 	let filterAnFormat = "| paste -d ' ' - - - - - - - - - - - - - - - | ".g:LookupFileGrep_UtilsBase."xargs -iXX sh -c \"grep -l "
 	let grepParams = ' '
@@ -378,11 +396,11 @@ function! <SID>CompileFilesAndSearch(pattern)
 	let currentPathCache = s:SearchKey("<grep>",a:pattern)
 	let grepPathCache = s:GetPathCache('<grep>',strpart(a:pattern,0,strlen(a:pattern)-1))
 	" we have to make a new file b/c we haven't searched this term before:
-	let file = tempname()
+	let file = s:NewFile()
 	let s:PathCaches[currentPathCache] = file
 	echom 'silent !cat '. grepPathCache . filterAnFormat . grepParams .'\"'. a:pattern .'\" XX" > '. file
 	exec 'silent !cat '. grepPathCache . filterAnFormat . grepParams .'\"'. a:pattern .'\" XX" > '. file
-	let tagfile = tempname()
+	let tagfile = s:NewFile()
 	let s:GrepCaches[grepKey] = tagfile
 	call s:MakeTagsFile(tagfile,file)
 	return tagfile
@@ -511,7 +529,7 @@ function! CaseLookupMatch(pattern,doCleanup)
 	endif
 	let currentPathCache = s:SearchKey("<case>",a:pattern)
 	let casePathCache = s:GetPathCache('<case>',strpart(a:pattern,0,strlen(a:pattern)-1))
-	let file = tempname()
+	let file = s:NewFile()
 	let s:PathCaches[currentPathCache] = file
 
 	if a:doCleanup == 1
@@ -519,7 +537,7 @@ function! CaseLookupMatch(pattern,doCleanup)
 	else
 		let cleanedPattern = a:pattern
 	endif
-	let file = tempname()
+	let file = s:NewFile()
 	let s:PathCaches[currentPathCache] = file
 	if (g:LookupFileGrep_IgnoreCase == 1)
 		"echom 'silent !cat '. casePathCache .' | '.g:LookupFileGrep_UtilsBase.'sed -e "s/^\(.*\)\/\(.*\)$/\2	\1\/\2/" | grep -i "^'. cleanedPattern .'.*	" | cut -d "	" -f 2 > '. file
@@ -528,7 +546,7 @@ function! CaseLookupMatch(pattern,doCleanup)
 		"echom 'silent !cat '. casePathCache .' | '.g:LookupFileGrep_UtilsBase.'sed -e "s/^\(.*\)\/\(.*\)$/\2	\1\/\2/" | grep "^'. cleanedPattern .'.*	" | cut -d "	" -f 2 > '. file
 		exec 'silent !cat '. casePathCache .' | '.g:LookupFileGrep_UtilsBase.'sed -e "s/^\(.*\)\/\(.*\)$/\2	\1\/\2/" | grep "^'. cleanedPattern .'.*	" | cut -d "	" -f 2 > '. file
 	endif
-	let caseCacheFile = tempname()
+	let caseCacheFile = s:NewFile()
 	let s:CaseLookupCaches[caseLookupKey] = caseCacheFile
 	call s:MakeTagsFile(caseCacheFile,file)
 	return TagFileMatch(caseCacheFile,".*")

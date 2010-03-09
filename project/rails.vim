@@ -14,6 +14,6 @@
 
 let searchpath=b:proj_cd .'/app/**,'. b:proj_cd .'/lib/**,'. b:proj_cd .'/test/**,'. b:proj_cd .'/config/**,'. b:proj_cd .'/db/**'
 let allsuffixes='.rb,.yml,.rhtml'
-exec "map <LocalLeader>r <Esc>:call CaseLookupFile('". searchpath ."','". allsuffixes ."',3)<CR>"
-exec "map <LocalLeader>t <Esc>:call CaseLookupFile('". searchpath ."','.rb',3)<CR>"
-exec "map <LocalLeader>g <Esc>:call GrepLookup('". searchpath ."','". allsuffixes ."',3)<CR>"
+exec "map <LocalLeader>r <Esc>:call CaseLookupFile('". searchpath ."','". allsuffixes ."',2)<CR>"
+exec "map <LocalLeader>t <Esc>:call CaseLookupFile('". searchpath ."','.rb',2)<CR>"
+exec "map <LocalLeader>g <Esc>:call GrepLookup('". searchpath ."','". allsuffixes ."',5)<CR>"
