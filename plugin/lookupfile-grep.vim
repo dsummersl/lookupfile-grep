@@ -99,40 +99,40 @@
 
 " Settings:{{{
 
+function! <SID>SetProperty(property,value)
+	if !exists(a:property)
+		exec "let ". a:property ."=". a:value .""
+	endif
+endfunction
+
 " IgnoreCase: If set to true, then all searches will ignore case during the search
 " process without disturbing the user's 'ignorecase' setting.
-call s:SetProperty('g:LookupFileGrep_IgnoreCase','0')
+call <SID>SetProperty('g:LookupFileGrep_IgnoreCase','0')
 
 " CacheSearchResults: If set to true, then all find searches (files) will be
 " stored for future use between VIM sessions. You can use the
 " LookupFileEraseCache() method to delete these. If not set, then caches are
 " not saved between uses (temp files are used instead) and initial searches
 " will take a little longer...
-call s:SetProperty('g:LookupFileGrep_CacheSearchResults','1')
+call <SID>SetProperty('g:LookupFileGrep_CacheSearchResults','1')
 
 " TempCaches: If set, then all lookup functions use a temporary
 " filename for cacheing. Otherwise, a permanent file
 " in the project directory is created.
-call s:SetProperty('g:LookupFileGrep_TempCaches','0')
+call <SID>SetProperty('g:LookupFileGrep_TempCaches','0')
 
 " TempCaches: If set, then all lookup functions use a temporary
 " filename for cacheing. Otherwise, a permanent file
 " in the project directory is created.
-call s:SetProperty('g:LookupFileGrep_TempCaches',"0")
+call <SID>SetProperty('g:LookupFileGrep_TempCaches',"0")
 
 " UtilsBase: textutils and findutils commands base directory where they are installed.
 " The default ones on OSX are not standard (I used fink).
 " let g:LookupFileGrep_UtilsBase = '/sw/bin/'
-call s:SetProperty('g:LookupFileGrep_UtilsBase',"'/usr/bin'")
+call <SID>SetProperty('g:LookupFileGrep_UtilsBase',"'/usr/bin'")
 
 " Ctags: Location of exuberant ctags program.
-call s:SetProperty('g:LookupFileGrep_Ctags','ctags')
-
-function! <SID>SetProperty(property,value)
-	if !exists(a:property)
-		exec "let ". a:property ."=". a:value .""
-	endif
-endfunction
+call <SID>SetProperty('g:LookupFileGrep_Ctags',"'ctags'")
 
 " }}}
 
