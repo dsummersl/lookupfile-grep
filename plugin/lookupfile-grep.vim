@@ -129,7 +129,7 @@ call <SID>SetProperty('g:LookupFileGrep_TempCaches',"0")
 " UtilsBase: textutils and findutils commands base directory where they are installed.
 " The default ones on OSX are not standard (I used fink).
 " let g:LookupFileGrep_UtilsBase = '/sw/bin/'
-call <SID>SetProperty('g:LookupFileGrep_UtilsBase',"'/usr/bin'")
+call <SID>SetProperty('g:LookupFileGrep_UtilsBase',"'/usr/bin/'")
 
 " Ctags: Location of exuberant ctags program.
 call <SID>SetProperty('g:LookupFileGrep_Ctags',"'ctags'")
@@ -318,7 +318,7 @@ function! <SID>CompileMatchesFile()
 		let newfile = s:NewFile()
 		let s:PathCaches[key] = newfile
 		let command = s:CommandsForFind(s:SavedLookupPath,s:SavedLookupSuffixes,g:LookupFileGrep_UtilsBase ."find")
-		echom "silent !(". command .') | uniq > '. newfile
+		"echom "silent !(". command .') | uniq > '. newfile
 		exec "silent !(". command .') | uniq > '. newfile
 	endif
 endfunction
@@ -327,8 +327,8 @@ function! <SID>MakeTagsFile(tagFile,fileList)
 	" Put in the tags header at the top of the file,
 	" and then convert the full path file names to "<filename> <fullpathname>"
 	" format...sorted
-	echom 'silent !(echo "\!_TAG_FILE_SORTED	2	/2=foldcase/"; (cat '. a:fileList
-				\ '|'.g:LookupFileGrep_UtilsBase.'sed  -e "s/^\(.*\)\/\(.*\)$/\2	\1\/\2	1/" | sort -f)) > '. a:tagFile
+	"echom 'silent !(echo "\!_TAG_FILE_SORTED	2	/2=foldcase/"; (cat '. a:fileList
+	"			\ '|'.g:LookupFileGrep_UtilsBase.'sed  -e "s/^\(.*\)\/\(.*\)$/\2	\1\/\2	1/" | sort -f)) > '. a:tagFile
 	exec 'silent !(echo "\!_TAG_FILE_SORTED	2	/2=foldcase/"; (cat '. a:fileList
 				\ '|'.g:LookupFileGrep_UtilsBase.'sed  -e "s/^\(.*\)\/\(.*\)$/\2	\1\/\2	1/" | sort -f)) > '. a:tagFile
 endfunction
@@ -398,7 +398,7 @@ function! <SID>CompileFilesAndSearch(pattern)
 	" we have to make a new file b/c we haven't searched this term before:
 	let file = s:NewFile()
 	let s:PathCaches[currentPathCache] = file
-	echom 'silent !cat '. grepPathCache . filterAnFormat . grepParams .'\"'. a:pattern .'\" XX" > '. file
+	"echom 'silent !cat '. grepPathCache . filterAnFormat . grepParams .'\"'. a:pattern .'\" XX" > '. file
 	exec 'silent !cat '. grepPathCache . filterAnFormat . grepParams .'\"'. a:pattern .'\" XX" > '. file
 	let tagfile = s:NewFile()
 	let s:GrepCaches[grepKey] = tagfile
@@ -503,7 +503,7 @@ function! <SID>ToBunny(pattern)
 		endif
 		let isfirst = 0
 	endfor
-	echom "cleaned pattern = ". cleanedPattern
+	"echom "cleaned pattern = ". cleanedPattern
 	return cleanedPattern .".*"
 endfunction
 
